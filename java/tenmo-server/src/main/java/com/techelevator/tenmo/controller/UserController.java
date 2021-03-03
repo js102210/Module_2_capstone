@@ -24,8 +24,8 @@ public class UserController {
 
 
     //method to get users accounts
-    @RequestMapping(path= "/users", method = RequestMethod.GET)
-    public List<User> getAllUserAccounts() {
+   @RequestMapping(path= "/users", method = RequestMethod.GET)
+    public List<User> getAllUsers() {
         return userDAO.findAll();
     }
 

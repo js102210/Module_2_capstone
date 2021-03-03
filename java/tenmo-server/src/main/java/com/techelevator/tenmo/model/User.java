@@ -85,17 +85,13 @@ public class User {
       return Objects.hash(id, username, password, activated, authorities);
    }
 
+
    @Override
-   public String toString(){
-      return username;
+   public String toString() {
+     return "User{" +
+             "id=" + id +
+              ", username='" + username + '\'' +
+             ", activated=" + activated +
+             '}';
    }
-//   @Override
-//   public String toString() {
-//      return "User{" +
-//              "id=" + id +
-//              ", username='" + username + '\'' +
-//              ", activated=" + activated +
-//              ", authorities=" + authorities +
-//              '}';
-//   }
 }

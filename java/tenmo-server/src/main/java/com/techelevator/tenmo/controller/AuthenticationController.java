@@ -20,6 +20,8 @@ import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.security.jwt.TokenProvider;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
+
 /**
  * Controller to authenticate users.
  */
@@ -58,6 +60,8 @@ public class AuthenticationController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User registration failed.");
         }
     }
+
+
 
     /**
      * Object to return as body in JWT Authentication.

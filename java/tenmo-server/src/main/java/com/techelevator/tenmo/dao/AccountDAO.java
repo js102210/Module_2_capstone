@@ -1,14 +1,19 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Account;
+import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
     public interface AccountDAO {
 
-        List<Account> findAllForUser(String user);
+        BigDecimal findBalanceForUser(String userName);
+        boolean validateTransfer(Long fromId, Long toId, BigDecimal amtToTransfer);
+        Transfer sendMoney (User fromUser, User toUser, BigDecimal amtToTransfer);
+        Long getIdOfBiggestAcctForUser(User user);
 
     }
 
