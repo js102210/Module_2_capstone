@@ -9,8 +9,11 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class  JdbcAccountDAO implements AccountDAO {
@@ -126,6 +129,36 @@ public class  JdbcAccountDAO implements AccountDAO {
         return id;
     }
 
+    @Override
+    public Map<Transfer, String> getTransactionsForUser(Long userId) {
+       Map<Transfer, String> transactionsReturned = new HashMap<>();
+       //query for all transactions the principal has sent
+       String sql = "SELECT * \n" +
+               "FROM transfers\n" +
+               "INNER JOIN accounts ON accounts.account_id = transfers.account_from\n" +
+               "INNER JOIN users ON accounts.user_id = users.user_id\n" +
+               "WHERE users.user_id = ?;";
+       SqlRowSet transfersFrom = jdbcTemplate.queryForRowSet(sql, userId);
+        //store each sent transfer in results map with value of string "Sent"
+       while (transfersFrom.next()){
+           Transfer t = mapRowToTransfer(transfersFrom);
+           transactionsReturned.put(t, "Sent");
+       }
+       //query for all transactions principal received
+        String sql2 = "SELECT * \n" +
+                "FROM transfers\n" +
+                "INNER JOIN accounts ON accounts.account_id = transfers.account_to\n" +
+                "INNER JOIN users ON accounts.user_id = users.user_id\n" +
+                "WHERE users.user_id = ?;";
+       SqlRowSet transfersTo = jdbcTemplate.queryForRowSet(sql2, userId);
+        //store each sent transfer in results map with value of string "Received"
+        while (transfersTo.next()){
+            Transfer t = mapRowToTransfer(transfersTo);
+            transactionsReturned.put(t, "Received");
+        }
+        return transactionsReturned;
+    }
+
     private Account mapRowToAccount(SqlRowSet result){
        Account a = new Account();
        a.setAccount_id(result.getLong("account_id"));
@@ -133,5 +166,16 @@ public class  JdbcAccountDAO implements AccountDAO {
        a.setBalance(result.getBigDecimal("balance"));
 
        return a;
+    }
+
+    private Transfer mapRowToTransfer(SqlRowSet result){
+        Transfer t = new Transfer();
+        t.setTransferId(result.getLong("transfer_id"));
+        t.setTransferTypeId(result.getLong("transfer_type_id"));
+        t.setTransferStatusId(result.getLong("transfer_status_id"));
+        t.setFromAcctId(result.getLong("account_from"));
+        t.setToAcctId(result.getLong("account_to"));
+        t.setAmtOfTransfer(result.getBigDecimal("amount"));
+        return t;
     }
 }

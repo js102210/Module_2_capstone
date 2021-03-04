@@ -11,6 +11,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Map;
 
 
 @RestController
@@ -51,36 +52,25 @@ public AccountsController(AccountDAO accountDAO, UserDAO userDAO){
         Long id = getCurrentUserId( p);
         t=  accountDAO.sendMoney(id, toUserId, amtToTransfer);
     }catch(RestClientResponseException e){
+        System.out.println("this is the exception false");
         return false;
     }
+    System.out.println("transfer successful");
     return t != null;
     }
+
+    @RequestMapping(path = "/user/alltransactions", method = RequestMethod.GET)
+    public Map<Transfer, String >  getAllTransactionsForUser(Principal p){
+        return accountDAO.getTransactionsForUser(getCurrentUserId(p));
+    }
+
+
+
+
     //get user ID method
     private Long getCurrentUserId(Principal principal) {
         return userDAO.findByUsername(principal.getName()).getId();
     }
+
 }
 
-//
-//    private AccountDAO accountDAO;
-//    private UserDAO userDAO;
-//    private transferDAO transferDAO;
-//
-//public AccountsController(AccountDAO, accountDAO, UserDAO userDAO, TransferDAO transferDAO) {
-//    this.accountDAO = accountDAO;
-//    this.userDAO = userDAO;
-//    this.transferDAO = transferDAO;
-//}
-//@RequestMapping(value = "/balance", method = RequestMethod.GET)
-//    public BigDecimal getBalance(Principal principal) throws UsernameNotFoundException {
-//    Long userId = getCurrentUserId(principal);
-//    return accountDAO.getAccountByUserId(userId).getBalance();
-//}
-//
-//
-//private Long getCurrentUserId(Principal principal){return userDAO.findByUserName(Principal.getName().getId());
-//
-//}
-//}
-//
-//

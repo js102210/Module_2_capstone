@@ -5,16 +5,19 @@ import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 
-    public interface AccountDAO {
+public interface AccountDAO {
 
         BigDecimal findBalanceForUser(String userName);
         boolean validateTransfer(Long fromId, Long toId, BigDecimal amtToTransfer);
         Transfer sendMoney (Long fromUserId, Long toUserId, BigDecimal amtToTransfer);
         Long getIdOfBiggestAcctForUser(Long userId);
         BigDecimal getSingleAccountBalance(Long userId);
+        Map<Transfer, String> getTransactionsForUser(Long userId);
 
     }
 
