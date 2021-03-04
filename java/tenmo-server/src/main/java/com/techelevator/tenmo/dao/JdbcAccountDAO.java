@@ -58,6 +58,18 @@ public class  JdbcAccountDAO implements AccountDAO {
         }
     }
 
+    //method to get single account balance for purpose of transfer
+    @Override
+    public BigDecimal getSingleAccountBalance(Long accountId){
+        String sql = "SELECT balance FROM accounts WHERE account_id = ?;";
+        BigDecimal balance = null;
+        SqlRowSet result= jdbcTemplate.queryForRowSet(sql, accountId);
+        if(result.next()){
+            balance= result.getBigDecimal("balance");
+        }
+        return balance;
+    }
+
     @Override
 
     //normally we would split this into different methods, but the fact that this needs to be as close to one 'transaction'
@@ -71,20 +83,24 @@ public class  JdbcAccountDAO implements AccountDAO {
            //determine which account to draw from
            Long fromAcctId = getIdOfBiggestAcctForUser(fromUserId);
            Long toAcctId = getIdOfBiggestAcctForUser(toUserId);
-           //reduce the amt of fromUser balance
-           String sql = "UPDATE accounts\n" +
-                   "SET balance = balance - ?\n" +
-                   "WHERE account_id = ?;";
-           jdbcTemplate.update(sql, amtToTransfer, fromAcctId);
+           //find the balance of the two seperate accounts and calculate balance post transfer
+           BigDecimal balanceOfFromAccount = getSingleAccountBalance(fromAcctId);
+           BigDecimal balanceOfToAccount = getSingleAccountBalance(toAcctId);
+           BigDecimal updatedBalanceOfFromAccount = balanceOfFromAccount.subtract(amtToTransfer);
+           BigDecimal updatedBalanceOfToAccount = balanceOfToAccount.add(amtToTransfer);
+           //reduce the amt of fromUser balance TODO add select statement to get balance
+           String sql = "UPDATE accounts " +
+                   "SET balance = ? " + "WHERE account_id = ?; " ;
+           jdbcTemplate.update(sql, updatedBalanceOfFromAccount, fromAcctId);
            //increase the amt of toUser balance
-           String sql2 = "UPDATE accounts\n" +
-                   "SET balance = balance + ?\n" +
-                   "WHERE account_id = ?;";
-           jdbcTemplate.update(sql, amtToTransfer, toAcctId);
+           String sql2 = "UPDATE accounts " +
+                   "SET balance = ? " +
+                   "WHERE account_id = ?; ";
+           jdbcTemplate.update(sql2, updatedBalanceOfToAccount, toAcctId);
            //log the transfer in transfer table as a Send with status Approved
            String sql3 = "INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount)\n" +
                    "VALUES (2, 2, ?, ?, ?) RETURNING transfer_id;";
-           Long newId = jdbcTemplate.queryForObject(sql, Long.class, fromAcctId, toAcctId, amtToTransfer);
+           Long newId = jdbcTemplate.queryForObject(sql3, Long.class, fromAcctId, toAcctId, amtToTransfer);
            //instantiate new Transfer object in memory
            Transfer transfer = new Transfer();
            transfer.setAmtOfTransfer(amtToTransfer);

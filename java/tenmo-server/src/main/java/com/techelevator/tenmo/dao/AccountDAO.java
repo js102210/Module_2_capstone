@@ -14,6 +14,7 @@ import java.util.List;
         boolean validateTransfer(Long fromId, Long toId, BigDecimal amtToTransfer);
         Transfer sendMoney (Long fromUserId, Long toUserId, BigDecimal amtToTransfer);
         Long getIdOfBiggestAcctForUser(Long userId);
+        BigDecimal getSingleAccountBalance(Long userId);
 
     }
 
