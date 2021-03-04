@@ -38,9 +38,9 @@ public AccountsController(AccountDAO dao){
     }
 
     // make a send money transfer
-  /*  @RequestMapping(path = "/user/sendmoney/{id}/{balance}", method = RequestMethod.PUT)
+   /* @RequestMapping(path = "/user/sendmoney/{id}/{balance}", method = RequestMethod.PUT)
     public boolean sendMoney(Principal p, @PathVariable Long toUserId, @PathVariable BigDecimal amtToTransfer){
-    dao.sendMoney(p.getName(), )
+    dao.sendMoney(p.getName(), toUserId, amtToTransfer );
     } */
 
 

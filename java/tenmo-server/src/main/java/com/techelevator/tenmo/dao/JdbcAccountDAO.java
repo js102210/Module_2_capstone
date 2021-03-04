@@ -63,13 +63,14 @@ public class  JdbcAccountDAO implements AccountDAO {
     //normally we would split this into different methods, but the fact that this needs to be as close to one 'transaction'
     //as possible inclines me to do it all in one method so it either succeeds or fails as a whole
 
-    public Transfer sendMoney(User fromUser, User toUser, BigDecimal amtToTransfer) {
+    //thinking about making this take acct ids instead
+    public Transfer sendMoney(Long fromUserId, Long toUserId, BigDecimal amtToTransfer) {
         //TODO consider creating a custom exception for this to throw
-       boolean isAllowed = validateTransfer(fromUser.getId(), toUser.getId(), amtToTransfer);
+       boolean isAllowed = validateTransfer(fromUserId, toUserId, amtToTransfer);
        if (isAllowed){
            //determine which account to draw from
-           Long fromAcctId = getIdOfBiggestAcctForUser(fromUser);
-           Long toAcctId = getIdOfBiggestAcctForUser(toUser);
+           Long fromAcctId = getIdOfBiggestAcctForUser(fromUserId);
+           Long toAcctId = getIdOfBiggestAcctForUser(toUserId);
            //reduce the amt of fromUser balance
            String sql = "UPDATE accounts\n" +
                    "SET balance = balance - ?\n" +
@@ -99,9 +100,9 @@ public class  JdbcAccountDAO implements AccountDAO {
     }
 
     @Override
-    public Long getIdOfBiggestAcctForUser(User user) {
+    public Long getIdOfBiggestAcctForUser(Long userId) {
         String sql = "SELECT MAX(balance), account_id FROM accounts WHERE user_id = ? GROUP BY accounts.account_id ORDER BY MAX(balance) DESC LIMIT 1";
-        SqlRowSet result = jdbcTemplate.queryForRowSet(sql, user.getId());
+        SqlRowSet result = jdbcTemplate.queryForRowSet(sql, userId);
         Long id = null;
         if (result.next()){
             id = result.getLong("account_id");
