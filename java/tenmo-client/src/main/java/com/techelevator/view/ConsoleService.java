@@ -16,7 +16,11 @@ public class ConsoleService {
 		this.in = new Scanner(input);
 	}
 
-	public Object getChoiceFromOptions(Object[] options) {
+    public ConsoleService() {
+
+    }
+
+    public Object getChoiceFromOptions(Object[] options) {
 		Object choice = null;
 		while (choice == null) {
 			displayMenuOptions(options);
