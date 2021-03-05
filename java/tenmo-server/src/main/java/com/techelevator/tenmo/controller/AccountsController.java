@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.Map;
+import java.util.List;
 
 
 @RestController
@@ -32,7 +32,7 @@ public AccountsController(AccountDAO accountDAO, UserDAO userDAO){
 
 
 
-//get all accounts for a user
+//get sum balance of all accounts for a user
     @RequestMapping(path= "/users/totalbalance", method = RequestMethod.GET)
     public BigDecimal getTotalBalanceForUser(Principal p){
     System.out.println(p.getName() + " requested their total balance: ");
@@ -44,7 +44,7 @@ public AccountsController(AccountDAO accountDAO, UserDAO userDAO){
     }
 
     // make a send money transfer
-    @ResponseStatus(HttpStatus.OK)
+  /*  @ResponseStatus(HttpStatus.OK)
     @RequestMapping(path = "/user/sendmoney/{toUserId}/{amtToTransfer}", method = RequestMethod.PUT)
     public boolean sendMoney(Principal p, @PathVariable() Long toUserId , @PathVariable BigDecimal amtToTransfer){
         Transfer t = null;
@@ -57,12 +57,19 @@ public AccountsController(AccountDAO accountDAO, UserDAO userDAO){
     }
     System.out.println("transfer successful");
     return t != null;
-    }
+    } */
 
-    @RequestMapping(path = "/user/alltransactions", method = RequestMethod.GET)
-    public Map<Transfer, String >  getAllTransactionsForUser(Principal p){
-        return accountDAO.getTransactionsForUser(getCurrentUserId(p));
-    }
+
+
+  /*  @RequestMapping(path = "/user/alltransfers", method = RequestMethod.GET)
+    public List<Transfer> getAllTransfersForUser(Principal p){
+        return accountDAO.getTransfersForUser(getCurrentUserId(p));
+    } */
+
+  /*  @RequestMapping(path = "/transferdetails", method = RequestMethod.GET)
+    public Transfer getDetailsForTransfer(@RequestParam Long transferId){
+        return accountDAO.getDetailsForTransfer(transferId);
+    } */
 
 
 
