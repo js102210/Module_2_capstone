@@ -1,31 +1,34 @@
 package com.techelevator.tenmo.services;
 
-import com.techelevator.view.ConsoleService;
+import com.techelevator.tenmo.models.User;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
-public class AccountService {
+public class UserService {
 
-    private final RestTemplate  restTemplate= new RestTemplate();
+    private final RestTemplate restTemplate= new RestTemplate();
     private String BASE_URL;
     public static String AUTH_TOKEN= "";
 
-    //private final ConsoleService consoleService = new ConsoleService();
-    public AccountService(String url){
+    public UserService(String url){
         this.BASE_URL=url;
     }
 
-    //Method to get total account balance
-    public BigDecimal getTotalAcctBalance(){
-        ResponseEntity<BigDecimal> totalBalance = null;
-        totalBalance = restTemplate.exchange(BASE_URL+ "/users/totalbalance", HttpMethod.GET, makeAuthEntity(), BigDecimal.class);
-        return totalBalance.getBody();
+    //method to get all users and their ids
+    public User[] getAllUsers() {
+        User[] allUsers = null;
+        allUsers = restTemplate.exchange(BASE_URL + "/users", HttpMethod.GET, makeAuthEntity(), User[].class).getBody();
+        return allUsers;
     }
+
+
+
 
     //Creates new Http Entity with the Bearer Auth token header
     private HttpEntity makeAuthEntity(){
@@ -34,5 +37,4 @@ public class AccountService {
         HttpEntity entity = new HttpEntity<>(headers);
         return entity;
     }
-
 }

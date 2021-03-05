@@ -1,9 +1,13 @@
 package com.techelevator.view;
 
 
+import com.techelevator.tenmo.models.Transfer;
+import com.techelevator.tenmo.models.User;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.util.Scanner;
 
 public class ConsoleService {
@@ -77,4 +81,45 @@ public class ConsoleService {
 		} while(result == null);
 		return result;
 	}
+
+	//prints each user with their id for selection
+	public void printUsers(User[] users){
+		System.out.println("-----------------------------");
+		System.out.println("ACTIVE USERS (SELECT BY ID)");
+		System.out.println("-----------------------------");
+		for (User u : users){
+			System.out.print(u.getId() + ": " + u.getUsername() + "\n");
+		}
+	}
+
+	public void printBalance(BigDecimal balance){
+		System.out.println("-----------------------------");
+		System.out.println("Your total balance is: $ " + balance);
+		System.out.println("-----------------------------");
+	}
+
+	public void printTransfers(Transfer[] transfers){
+
+		System.out.println("----------------------------------------------------\n" +
+				"Transfers\n" +
+				"ID          From/To                 Amount         Status\n" +
+				"----------------------------------------------------");
+		for (Transfer t : transfers){
+			System.out.println(t.getTransferId()+ "         " + "From: " + t.getFromUserName() + " To: " + t.getToUserName() + " $ " + t.getAmtOfTransfer() + "         " + t.getTransferStatusName());
+		}
+	}
+
+	public void printDetailsForTransfer(Transfer t){
+		System.out.println("--------------------------------------------\n" +
+				"Transfer Details\n" +
+				"--------------------------------------------");
+		System.out.println("Id: " + t.getTransferId());
+		System.out.println("From: " + t.getFromUserName());
+		System.out.println("To: " + t.getToUserName());
+		System.out.println("Type: " + t.getTransferTypeName());
+		System.out.println("Status: " + t.getTransferStatusName());
+		System.out.println("Amount: " + t.getAmtOfTransfer());
+
+	}
+
 }

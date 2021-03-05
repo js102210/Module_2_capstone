@@ -1,12 +1,12 @@
 package com.techelevator.tenmo;
 
 import com.techelevator.tenmo.models.AuthenticatedUser;
+import com.techelevator.tenmo.models.Transfer;
 import com.techelevator.tenmo.models.UserCredentials;
-import com.techelevator.tenmo.services.AccountService;
-import com.techelevator.tenmo.services.AuthenticationService;
-import com.techelevator.tenmo.services.AuthenticationServiceException;
-import com.techelevator.tenmo.services.TransferService;
+import com.techelevator.tenmo.services.*;
 import com.techelevator.view.ConsoleService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
 
@@ -23,28 +23,31 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private static final String MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS = "View your past transfers";
 	private static final String MAIN_MENU_OPTION_REQUEST_BUCKS = "Request TE bucks";
 	private static final String MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS = "View your pending requests";
+	private static final String MAIN_MENU_OPTION_VIEW_DETAILS_FOR_TRANSFER = "View a specific transfer";
 	private static final String MAIN_MENU_OPTION_LOGIN = "Login as different user";
-	private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_VIEW_BALANCE, MAIN_MENU_OPTION_SEND_BUCKS, MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS, MAIN_MENU_OPTION_REQUEST_BUCKS, MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS, MAIN_MENU_OPTION_LOGIN, MENU_OPTION_EXIT };
+	private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_VIEW_BALANCE, MAIN_MENU_OPTION_SEND_BUCKS, MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS, MAIN_MENU_OPTION_REQUEST_BUCKS, MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS, MAIN_MENU_OPTION_VIEW_DETAILS_FOR_TRANSFER, MAIN_MENU_OPTION_LOGIN, MENU_OPTION_EXIT };
 	private final TransferService transferService;
 	private final AccountService accountService;
 
 	private AuthenticatedUser currentUser;
     private ConsoleService console;
     private AuthenticationService authenticationService;
+    private UserService userService;
 
 
 
 	public static void main(String[] args) {
     	App app = new App(new ConsoleService(System.in, System.out), new AuthenticationService(API_BASE_URL),
-				new TransferService(API_BASE_URL), new AccountService(API_BASE_URL));
+				new TransferService(API_BASE_URL), new AccountService(API_BASE_URL), new UserService(API_BASE_URL));
     	app.run();
     }
 
-    public App(ConsoleService console, AuthenticationService authenticationService, TransferService transferService, AccountService accountService) {
+    public App(ConsoleService console, AuthenticationService authenticationService, TransferService transferService, AccountService accountService, UserService userService) {
 		this.console = console;
 		this.authenticationService = authenticationService;
 		this.transferService = transferService;
 		this.accountService = accountService;
+		this.userService = userService;
 	}
 
 	public void run() {
@@ -69,6 +72,8 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				sendBucks();
 			} else if(MAIN_MENU_OPTION_REQUEST_BUCKS.equals(choice)) {
 				requestBucks();
+			} else if (MAIN_MENU_OPTION_VIEW_DETAILS_FOR_TRANSFER.equals(choice)){
+				viewTransferDetails();
 			} else if(MAIN_MENU_OPTION_LOGIN.equals(choice)) {
 				login();
 			} else {
@@ -77,31 +82,42 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			}
 		}
 	}
-
 	private void viewCurrentBalance() {
 		BigDecimal balance = accountService.getTotalAcctBalance();
-		System.out.println("Your total balance is: " + balance);
-		
+		console.printBalance(balance);
 	}
 
 	private void viewTransferHistory() {
-		// TODO Auto-generated method stub
-		
+		Transfer[] transferHistory = transferService.getAllTransfersForUser();
+		console.printTransfers(transferHistory);
 	}
 
 	private void viewPendingRequests() {
-		// TODO Auto-generated method stub
-		
+	 Transfer[] pendingTransfers = transferService.showPendingTransfers();
+	 console.printTransfers(pendingTransfers);
+
 	}
 
 	private void sendBucks() {
-		// TODO Auto-generated method stub
-		
+		console.printUsers(userService.getAllUsers());
+		int selection = console.getUserInputInteger("Enter the ID of the user you would like to send Bucks to: ");
+		BigDecimal amount = BigDecimal.valueOf(console.getUserInputInteger("Enter the number of Bucks to send them: "));
+		boolean success = transferService.sendMoney((long) selection, amount);
+		if (success){
+			System.out.println("The transfer was made");
+		} else {
+			System.out.println("The transfer could not be made");
+		}
 	}
 
 	private void requestBucks() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	private void viewTransferDetails(){
+		int selection = console.getUserInputInteger("Enter the ID of the transfer you would like to view: ");
+		console.printDetailsForTransfer(transferService.getDetailsForTransfer(selection));
 	}
 	
 	private void exitProgram() {
@@ -150,10 +166,16 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		{
 			UserCredentials credentials = collectUserCredentials();
 		    try {
+		    	//log current user and set their token as the active one for each service
 				currentUser = authenticationService.login(credentials);
+				accountService.AUTH_TOKEN = currentUser.getToken();
+				transferService.AUTH_TOKEN = currentUser.getToken();
+				userService.AUTH_TOKEN = currentUser.getToken();
 			} catch (AuthenticationServiceException e) {
 				System.out.println("LOGIN ERROR: "+e.getMessage());
 				System.out.println("Please attempt to login again.");
+			} catch (RestClientResponseException e){
+		    	System.out.println("You must be logged in or be more powerful to view this resource. Train harder or consult your local administrator. Good luck :)");
 			}
 		}
 	}

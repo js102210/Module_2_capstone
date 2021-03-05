@@ -92,6 +92,25 @@ public class JdbcTransferDAO implements TransferDAO{
     }
 
     @Override
+    public Transfer requestMoney(Long fromUserId, Long toUserId, BigDecimal amtToTransfer) {
+        //determine which accounts would be drawn from so we can log the pending transfer
+        Long fromAcctId = getIdOfBiggestAcctForUser(fromUserId);
+        Long toAcctId = getIdOfBiggestAcctForUser(toUserId);
+        String sql = "INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount)\n" +
+                "VALUES (1, 1, ?, ?, ?) RETURNING transfer_id;";
+        //log the transfer as pending, do not adjust balances
+        Long newId = jdbcTemplate.queryForObject(sql, Long.class, fromAcctId, toAcctId, amtToTransfer);
+        Transfer transfer = new Transfer();
+        transfer.setAmtOfTransfer(amtToTransfer);
+        transfer.setTransferTypeId(1L);
+        transfer.setTransferStatusId(1L);
+        transfer.setFromAcctId(fromAcctId);
+        transfer.setToAcctId(toAcctId);
+        transfer.setTransferId(newId);
+        return transfer;
+    }
+
+    @Override
     public Long getIdOfBiggestAcctForUser(Long userId) {
         String sql = "SELECT MAX(balance), account_id FROM accounts WHERE user_id = ? GROUP BY accounts.account_id ORDER BY MAX(balance) DESC LIMIT 1";
         SqlRowSet result = jdbcTemplate.queryForRowSet(sql, userId);
@@ -106,29 +125,19 @@ public class JdbcTransferDAO implements TransferDAO{
     public List<Transfer> getTransfersForUser(Long userId) {
         List<Transfer> transactionsReturned = new ArrayList<>();
         //query for all transactions where the principal has sent money
-        String sql = "SELECT *, 'Sent' as typeOfTransferToUser\n" +
+        String sql = "SELECT DISTINCT transfers.transfer_id, amount, transfer_statuses.transfer_status_desc, transfer_types.transfer_type_desc, transfers.account_from, transfers.account_to, transfers.transfer_status_id, transfers.transfer_type_id,\n" +
+                "(SELECT username FROM users WHERE users.user_id = (SELECT user_id FROM accounts  WHERE users.user_id = accounts.user_id AND accounts.account_id = transfers.account_from)) AS from_username,\n" +
+                "(SELECT username FROM users WHERE users.user_id = (SELECT user_id FROM accounts  WHERE users.user_id = accounts.user_id AND accounts.account_id = transfers.account_to)) AS to_username\n" +
                 "FROM transfers\n" +
-                "INNER JOIN accounts ON accounts.account_id = transfers.account_from\n" +
+                "INNER JOIN accounts ON accounts.account_id = transfers.account_to OR accounts.account_id = transfers.account_from\n" +
                 "INNER JOIN users ON accounts.user_id = users.user_id\n" +
+                "INNER JOIN transfer_types ON transfers.transfer_type_id = transfer_types.transfer_type_id\n" +
+                "INNER JOIN transfer_statuses ON transfers.transfer_status_id = transfer_statuses.transfer_status_id\n" +
                 "WHERE users.user_id = ?";
         SqlRowSet transfersFrom = jdbcTemplate.queryForRowSet(sql, userId);
-        //store each sent transfer in results map with value of string "Sent"
+        //store each sent transfer in results in list
         while (transfersFrom.next()){
             Transfer t = mapRowToTransfer(transfersFrom);
-            t.setTypeOfTransferToUser("Sent");
-            transactionsReturned.add(t);
-        }
-        //query for all transactions principal received
-        String sql2 = "SELECT *, 'Received' as typeOfTransferToUser\n" +
-                "FROM transfers\n" +
-                "INNER JOIN accounts ON accounts.account_id = transfers.account_to\n" +
-                "INNER JOIN users ON accounts.user_id = users.user_id\n" +
-                "WHERE users.user_id = ?;";
-        SqlRowSet transfersTo = jdbcTemplate.queryForRowSet(sql2, userId);
-        //store each sent transfer in results map with value of string "Received"
-        while (transfersTo.next()){
-            Transfer t = mapRowToTransfer(transfersTo);
-            t.setTypeOfTransferToUser("Received");
             transactionsReturned.add(t);
         }
         return transactionsReturned;
@@ -136,11 +145,19 @@ public class JdbcTransferDAO implements TransferDAO{
 
     @Override
     public Transfer getDetailsForTransfer(Long transferId) {
-        String sql = "SELECT * FROM transfers WHERE transfer_id = ?;";
+        String sql = "SELECT DISTINCT transfers.transfer_id, amount, transfer_statuses.transfer_status_desc, transfer_types.transfer_type_desc, transfers.account_from, transfers.account_to, transfers.transfer_status_id, transfers.transfer_type_id,\n" +
+                "(SELECT username FROM users WHERE users.user_id = (SELECT user_id FROM accounts  WHERE users.user_id = accounts.user_id AND accounts.account_id = transfers.account_from)) AS from_username,\n" +
+                "(SELECT username FROM users WHERE users.user_id = (SELECT user_id FROM accounts  WHERE users.user_id = accounts.user_id AND accounts.account_id = transfers.account_to)) AS to_username\n" +
+                "FROM transfers\n" +
+                "INNER JOIN accounts ON accounts.account_id = transfers.account_to OR accounts.account_id = transfers.account_from\n" +
+                "INNER JOIN users ON accounts.user_id = users.user_id\n" +
+                "INNER JOIN transfer_types ON transfers.transfer_type_id = transfer_types.transfer_type_id\n" +
+                "INNER JOIN transfer_statuses ON transfers.transfer_status_id = transfer_statuses.transfer_status_id\n" +
+                "WHERE transfers.transfer_id = ?;";
         SqlRowSet result = jdbcTemplate.queryForRowSet(sql, transferId);
         Transfer t = null;
         if (result.next()){
-            t = mapRowToTransfer(result);
+          t = mapRowToTransfer(result);
         }
         return t;
     }
@@ -153,9 +170,14 @@ public class JdbcTransferDAO implements TransferDAO{
         t.setFromAcctId(result.getLong("account_from"));
         t.setToAcctId(result.getLong("account_to"));
         t.setAmtOfTransfer(result.getBigDecimal("amount"));
-       // t.setTypeOfTransferToUser(result.getString("typeOfTransferToUser"));
+        t.setTransferStatusName(result.getString("transfer_status_desc"));
+        t.setTransferTypeName(result.getString("transfer_type_desc"));
+        t.setFromUserName(result.getString("from_username"));
+        t.setToUserName(result.getString("to_username"));
         return t;
     }
+
+
 
 
 

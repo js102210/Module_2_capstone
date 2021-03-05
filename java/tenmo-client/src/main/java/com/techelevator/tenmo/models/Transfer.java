@@ -1,12 +1,7 @@
-package com.techelevator.tenmo.model;
+package com.techelevator.tenmo.models;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import org.apache.tomcat.util.json.JSONParser;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import java.math.BigDecimal;
 
 public class Transfer {
@@ -112,9 +107,5 @@ public class Transfer {
     public void setTransferId(Long transferId) {
         this.transferId = transferId;
     }
-
-
-
-
 
 }

@@ -77,7 +77,6 @@ public class  JdbcAccountDAO implements AccountDAO {
         t.setFromAcctId(result.getLong("account_from"));
         t.setToAcctId(result.getLong("account_to"));
         t.setAmtOfTransfer(result.getBigDecimal("amount"));
-        t.setTypeOfTransferToUser(result.getString("typeOfTransferToUser"));
         return t;
     }
 }

@@ -11,4 +11,5 @@ public interface TransferDAO {
     Long getIdOfBiggestAcctForUser(Long userId);
     List<Transfer> getTransfersForUser(Long userId);
     Transfer getDetailsForTransfer(Long transferId);
+    Transfer requestMoney(Long fromUserId, Long toUserId, BigDecimal amtToTransfer);
 }

@@ -26,7 +26,7 @@ public class TransferController {
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(path = "/user/sendmoney/{toUserId}/{amtToTransfer}", method = RequestMethod.PUT)
-    public boolean sendMoney(Principal p, @PathVariable() Long toUserId , @PathVariable BigDecimal amtToTransfer){
+    public boolean sendMoney(Principal p, @PathVariable() Long toUserId , @PathVariable() BigDecimal amtToTransfer){
         Transfer t = null;
         try {
             Long id = getCurrentUserId( p);
@@ -36,6 +36,21 @@ public class TransferController {
             return false;
         }
         System.out.println("transfer successful");
+        return t != null;
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(path = "user/requestmoney/{fromUserId}/{amtToTransfer}", method = RequestMethod.POST)
+    public boolean requestMoney(Principal p, @PathVariable() Long fromUserId, @PathVariable() BigDecimal amtToTransfer){
+        Transfer t = null;
+        try {
+            Long id = getCurrentUserId(p);
+            t = transferDAO.requestMoney(id, fromUserId, amtToTransfer);
+        } catch(RestClientResponseException e){
+            System.out.println("this is the exception false");
+            return false;
+        }
+        System.out.println("request successful");
         return t != null;
     }
 
