@@ -64,6 +64,26 @@ public class TransferController {
         return transferDAO.getDetailsForTransfer(transferId);
     }
 
+    @RequestMapping(path = "/user/transferrequest/{transferId}/{toUserId}/approved/amtToTransfer", method = RequestMethod.PUT)
+    public boolean approveTransfer(Principal p, @PathVariable Long transferId, @PathVariable Long toUserId, @PathVariable BigDecimal amtToTransfer){
+        if(!toUserId.equals(getCurrentUserId(p))){
+          transferDAO.acceptOrRejectPendingRequest(toUserId, getCurrentUserId(p), amtToTransfer, transferId, true );
+          return true;
+        } else{
+            return false;
+        }
+    }
+
+    @RequestMapping(path = "/user/transferrequest/{transferId}/{toUserId}/denied/amtToTransfer", method = RequestMethod.PUT)
+    public boolean deniedTransfer(Principal p, @PathVariable Long transferId, @PathVariable Long toUserId, @PathVariable BigDecimal amtToTransfer){
+        if(!toUserId.equals(getCurrentUserId(p))){
+            transferDAO.acceptOrRejectPendingRequest(toUserId, getCurrentUserId(p), amtToTransfer, transferId, false );
+            return true;
+        } else{
+            return false;
+        }
+    }
+
 
 
     private Long getCurrentUserId(Principal principal) {

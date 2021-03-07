@@ -12,4 +12,5 @@ public interface TransferDAO {
     List<Transfer> getTransfersForUser(Long userId);
     Transfer getDetailsForTransfer(Long transferId);
     Transfer requestMoney(Long fromUserId, Long toUserId, BigDecimal amtToTransfer);
+    void acceptOrRejectPendingRequest(Long fromUserID,Long toUserId, BigDecimal amtToTransfer, Long transferId, boolean isAccepted);
 }

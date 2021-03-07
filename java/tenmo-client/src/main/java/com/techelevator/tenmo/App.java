@@ -26,6 +26,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private static final String MAIN_MENU_OPTION_VIEW_DETAILS_FOR_TRANSFER = "View a specific transfer";
 	private static final String MAIN_MENU_OPTION_LOGIN = "Login as different user";
 	private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_VIEW_BALANCE, MAIN_MENU_OPTION_SEND_BUCKS, MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS, MAIN_MENU_OPTION_REQUEST_BUCKS, MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS, MAIN_MENU_OPTION_VIEW_DETAILS_FOR_TRANSFER, MAIN_MENU_OPTION_LOGIN, MENU_OPTION_EXIT };
+	private static final String APPROVE_OR_DENY_MENU_APPROVE ="Approved";
+	private static final String APPROVE_OR_DENY_MENU_DENIED ="Denied";
+	private static final String[] APPROVE_OR_DENY_MENU = {APPROVE_OR_DENY_MENU_APPROVE, APPROVE_OR_DENY_MENU_DENIED};
 	private final TransferService transferService;
 	private final AccountService accountService;
 
@@ -95,6 +98,16 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private void viewPendingRequests() {
 	 Transfer[] pendingTransfers = transferService.showPendingTransfers();
 	 console.printTransfers(pendingTransfers);
+	 int selection = console.getUserInputInteger("Enter the ID of a transfer you'd like to approve or reject: ");
+	 console.printDetailsForTransfer(transferService.getDetailsForTransfer(selection));
+	 System.out.println("Would you like to Approve or Reject this transfer?: ");
+	 String choice = (String)console.getChoiceFromOptions(APPROVE_OR_DENY_MENU);
+	 if (APPROVE_OR_DENY_MENU_APPROVE.equals(choice)){
+	 	//TODO
+	 } if (APPROVE_OR_DENY_MENU_DENIED.equals(choice)){
+	 	//TODO
+		}
+
 
 	}
 
@@ -111,8 +124,15 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void requestBucks() {
-		// TODO Auto-generated method stub
-		
+		console.printUsers(userService.getAllUsers());
+		int selection = console.getUserInputInteger("Enter the ID of the user you would like to request Bucks from: ");
+		BigDecimal amount = BigDecimal.valueOf(console.getUserInputInteger("Enter the number of Bucks to request from user: "));
+		boolean success = transferService.requestMoney((long) selection, amount);
+		if (success){
+			System.out.println("The request was successfully made");
+		} else {
+			System.out.println("The request could not be processed");
+		}
 	}
 
 	private void viewTransferDetails(){

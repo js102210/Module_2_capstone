@@ -92,6 +92,38 @@ public class JdbcTransferDAO implements TransferDAO{
     }
 
     @Override
+    public void acceptOrRejectPendingRequest(Long fromUserID, Long toUserId, BigDecimal amtToTransfer, Long transferId, boolean isAccepted) {
+        boolean isAllowed = validateTransfer(fromUserID, toUserId, amtToTransfer);
+        if(isAllowed && isAccepted){
+            Long fromAcctId = getIdOfBiggestAcctForUser(fromUserID);
+            Long toAcctId = getIdOfBiggestAcctForUser(toUserId);
+            //
+            BigDecimal balanceOfFromAccount = accountDAO.getSingleAccountBalance(fromAcctId);
+            BigDecimal balanceOfToAccount = accountDAO.getSingleAccountBalance(toAcctId);
+            BigDecimal updatedBalanceOfFromAccount = balanceOfFromAccount.subtract(amtToTransfer);
+            BigDecimal updatedBalanceOfToAccount = balanceOfToAccount.add(amtToTransfer);
+            //
+            String sql = "UPDATE accounts " +
+                    "SET balance = ? " + "WHERE account_id = ?; " ;
+            jdbcTemplate.update(sql, updatedBalanceOfFromAccount, fromAcctId);
+            //increase the amt of toUser balance
+            String sql2 = "UPDATE accounts " +
+                    "SET balance = ? " +
+                    "WHERE account_id = ?; ";
+            jdbcTemplate.update(sql2, updatedBalanceOfToAccount, toAcctId);
+            // Set status to approved if approved
+            String sql3= "UPDATE transfers\n" +
+                    "SET transfer_status_id = 2\n" +
+                    "WHERE transfer_id = ?; ";
+            jdbcTemplate.update(sql3, transferId);
+        } else{
+            String sql= "UPDATE transfers\n" +
+                    "SET transfer_status_id = 3\n" +
+                    "WHERE transfer_id = ?; ";
+        }
+    }
+
+    @Override
     public Transfer requestMoney(Long fromUserId, Long toUserId, BigDecimal amtToTransfer) {
         //determine which accounts would be drawn from so we can log the pending transfer
         Long fromAcctId = getIdOfBiggestAcctForUser(fromUserId);
@@ -109,6 +141,8 @@ public class JdbcTransferDAO implements TransferDAO{
         transfer.setTransferId(newId);
         return transfer;
     }
+
+
 
     @Override
     public Long getIdOfBiggestAcctForUser(Long userId) {
