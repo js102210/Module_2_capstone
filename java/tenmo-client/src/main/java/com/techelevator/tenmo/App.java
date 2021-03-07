@@ -103,7 +103,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	 System.out.println("Would you like to Approve or Reject this transfer?: ");
 	 String choice = (String)console.getChoiceFromOptions(APPROVE_OR_DENY_MENU);
 	 if (APPROVE_OR_DENY_MENU_APPROVE.equals(choice)){
-	 	//TODO
+//	 	transferService.approvedTransfer(selection)
 	 } if (APPROVE_OR_DENY_MENU_DENIED.equals(choice)){
 	 	//TODO
 		}
