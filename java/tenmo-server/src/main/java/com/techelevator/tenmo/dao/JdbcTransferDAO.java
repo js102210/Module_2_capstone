@@ -125,7 +125,8 @@ public class JdbcTransferDAO implements TransferDAO{
     public List<Transfer> getTransfersForUser(Long userId) {
         List<Transfer> transactionsReturned = new ArrayList<>();
         //query for all transactions where the principal has sent money
-        String sql = "SELECT DISTINCT transfers.transfer_id, amount, transfer_statuses.transfer_status_desc, transfer_types.transfer_type_desc, transfers.account_from, transfers.account_to, transfers.transfer_status_id, transfers.transfer_type_id,\n" +
+        String sql = "SELECT DISTINCT transfers.transfer_id, amount, transfer_statuses.transfer_status_desc, transfer_types.transfer_type_desc, " +
+                "transfers.account_from, transfers.account_to, transfers.transfer_status_id, transfers.transfer_type_id,\n" +
                 "(SELECT username FROM users WHERE users.user_id = (SELECT user_id FROM accounts  WHERE users.user_id = accounts.user_id AND accounts.account_id = transfers.account_from)) AS from_username,\n" +
                 "(SELECT username FROM users WHERE users.user_id = (SELECT user_id FROM accounts  WHERE users.user_id = accounts.user_id AND accounts.account_id = transfers.account_to)) AS to_username\n" +
                 "FROM transfers\n" +
